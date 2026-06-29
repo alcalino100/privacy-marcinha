@@ -6,8 +6,8 @@ import './globals.css'
 const inter = Inter({ variable: '--font-geist-sans', subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Martina Olvr · privacy.',
-  description: 'Perfil de Martina Olvr na privacy.',
+  title: 'Marcinha Amorin | Privacy',
+  description: 'Perfil de Marcinha Amorin na privacy.',
   generator: 'v0.app',
   icons: {
     icon: [

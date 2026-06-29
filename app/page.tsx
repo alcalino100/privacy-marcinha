@@ -27,6 +27,7 @@ function PlanButton({
 }) {
   return (
     <button
+      aria-label={`Assinar Marcinha Amorin por ${price}`}
       className={`flex h-[52px] w-full items-center justify-between rounded-full px-5 text-white transition hover:brightness-105 cursor-pointer ${className}`}
     >
       <span className="text-[15px] font-semibold">{label}</span>
@@ -50,8 +51,8 @@ export default function Page() {
       {/* Bloco 2 — Cover + Avatar + Contadores */}
       <div className="relative">
         <img
-          src="https://picsum.photos/seed/martinaolvr-cover/480/180"
-          alt="Foto de capa de Martina Olvr"
+          src="/capa.jpg"
+          alt="Foto de capa de Marcinha Amorin"
           className="h-[180px] w-full object-cover"
         />
         <div className="absolute bottom-2 right-2 z-10 flex items-center gap-3 text-[12px] font-bold text-white">
@@ -71,8 +72,8 @@ export default function Page() {
         <div className="absolute -bottom-9 left-3 z-10">
           <div className="relative h-[72px] w-[72px] overflow-hidden rounded-full border-[3px] border-white">
             <img
-              src="https://picsum.photos/seed/martinaolvr-avatar/72/72"
-              alt="Avatar de Martina Olvr"
+              src="/perfil.jpg"
+              alt="Avatar de Marcinha Amorin"
               className="h-full w-full object-cover"
             />
           </div>
@@ -83,14 +84,13 @@ export default function Page() {
       {/* Bloco 3 — Info do Perfil */}
       <section className="px-4 pb-4 pt-12">
         <div className="flex items-center gap-1">
-          <h1 className="text-[17px] font-bold text-gray-900">Martina Olvr</h1>
+          <h1 className="text-[17px] font-bold text-gray-900">Marcinha Amorin</h1>
           <BadgeCheck size={16} className="text-[#3b82f6]" />
         </div>
-        <p className="text-[13px] text-gray-500">@martinaolvr</p>
+        <p className="text-[13px] text-gray-500">@marcinha_amorin</p>
         <p className="mt-2 line-clamp-2 text-[13px] text-gray-700">
-          Oiee, queridos! Sou a Martina, 23 aninhos, acabei de fazer meu silicone
-          e adoro compartilhar cada fase com vocês. São mais de 2.000 mídias
-          exclusivas, atualizações frequentes, bastidores...
+          Oiie amores, sou a marcinha, sua loira rosada, a mais gostosa do site,
+          quer ver mais sobre...faça sua assinatura agora mesmo!
           <span className="font-medium text-[#f07040]"> Ler mais</span>
         </p>
         <div className="mt-3 flex items-center gap-4 text-gray-700">
@@ -158,22 +158,27 @@ export default function Page() {
           <div className="flex items-center justify-between p-3">
             <div className="flex items-center gap-2">
               <img
-                src="https://picsum.photos/seed/martinaolvr-avatar/40/40"
-                alt="Avatar de Martina Olvr"
+                src="/perfil.jpg"
+                alt="Avatar de Marcinha Amorin"
                 className="h-10 w-10 rounded-full object-cover"
               />
               <div>
                 <div className="flex items-center gap-1">
-                  <span className="text-[14px] font-semibold text-gray-900">Martina Olvr</span>
+                  <span className="text-[14px] font-semibold text-gray-900">Marcinha Amorin</span>
                   <BadgeCheck size={14} className="text-[#3b82f6]" />
                 </div>
-                <span className="text-xs text-gray-400">@martinaolvr</span>
+                <span className="text-xs text-gray-400">@marcinha_amorin</span>
               </div>
             </div>
             <MoreVertical size={20} className="text-gray-400" />
           </div>
 
           <div className="relative aspect-square overflow-hidden bg-[#ede8e0]">
+            <img
+              src="/desfocada.jpg"
+              alt="Conteúdo bloqueado de Marcinha Amorin"
+              className="h-full w-full object-cover blur-2xl scale-110"
+            />
             <svg
               className="absolute -bottom-10 -left-10 opacity-60"
               width="180"
