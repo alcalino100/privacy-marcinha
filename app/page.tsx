@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { CheckoutModal } from "@/components/checkout-modal"
 import {
   Image as ImageIcon,
   Video,
@@ -20,13 +21,16 @@ function PlanButton({
   label,
   price,
   className,
+  onSelect,
 }: {
   label: string
   price: string
   className: string
+  onSelect: () => void
 }) {
   return (
     <button
+      onClick={onSelect}
       aria-label={`Assinar Marcinha Amorin por ${price}`}
       className={`flex h-[52px] w-full items-center justify-between rounded-full px-5 text-white transition hover:brightness-105 cursor-pointer ${className}`}
     >
@@ -36,8 +40,11 @@ function PlanButton({
   )
 }
 
+type Plan = { label: string; price: string; amount: number }
+
 export default function Page() {
   const [promoOpen, setPromoOpen] = useState(true)
+  const [plan, setPlan] = useState<Plan | null>(null)
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-[480px] bg-[#f0ebe4] pb-16">
@@ -107,7 +114,12 @@ export default function Page() {
 
         {/* Bloco 4 — Assinaturas */}
         <h2 className="mb-2 mt-4 text-[15px] font-semibold text-gray-900">Assinaturas</h2>
-        <PlanButton label="1 mês" price="R$ 25,00" className="bg-gradient-to-r from-[#f5956a] to-[#f07040]" />
+        <PlanButton
+          label="1 mês"
+          price="R$ 25,00"
+          className="bg-gradient-to-r from-[#f5956a] to-[#f07040]"
+          onSelect={() => setPlan({ label: "1 mês", price: "R$ 25,00", amount: 25 })}
+        />
 
         {/* Bloco 5 — Promoções */}
         <div className="mt-4 border-t border-[#e5e0d8]">
@@ -131,11 +143,13 @@ export default function Page() {
                 label="3 meses (20% off)"
                 price="R$ 60,00"
                 className="bg-gradient-to-r from-[#f9c09a] to-[#f5956a]"
+                onSelect={() => setPlan({ label: "3 meses", price: "R$ 60,00", amount: 60 })}
               />
               <PlanButton
                 label="6 meses (30% off)"
                 price="R$ 105,00"
                 className="bg-gradient-to-r from-[#f9c09a] to-[#f5956a]"
+                onSelect={() => setPlan({ label: "6 meses", price: "R$ 105,00", amount: 105 })}
               />
             </div>
           </div>
@@ -227,6 +241,8 @@ export default function Page() {
         </div>
         <Bookmark size={24} className="text-gray-500" />
       </nav>
+
+      {plan && <CheckoutModal plan={plan} onClose={() => setPlan(null)} />}
     </main>
   )
 }
