@@ -2,12 +2,20 @@
 
 import Image from "next/image"
 
-export function PreSell({ onEnter }: { onEnter: () => void }) {
+export function PreSell({
+  onEnter,
+  name = "Marcinha Amorin",
+  coverUrl = "/perfil.jpg",
+}: {
+  onEnter: () => void
+  name?: string
+  coverUrl?: string
+}) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
       {/* imagem de fundo borrada */}
       <Image
-        src="/perfil.jpg"
+        src={coverUrl || "/perfil.jpg"}
         alt=""
         fill
         priority
@@ -30,7 +38,7 @@ export function PreSell({ onEnter }: { onEnter: () => void }) {
         </h1>
         <p className="mt-3 text-pretty text-[15px] leading-relaxed text-white/70">
           O conteúdo a seguir é exclusivo e destinado a maiores de 18 anos. Ao continuar, você confirma que é maior de
-          idade e deseja visualizar o perfil de <span className="font-semibold text-white">Marcinha Amorin</span>.
+          idade e deseja visualizar o perfil de <span className="font-semibold text-white">{name}</span>.
         </p>
 
         <button

@@ -23,7 +23,7 @@ export function CheckoutModal({ plan, onClose }: { plan: Plan; onClose: () => vo
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, amount: plan.amount, description: `Assinatura ${plan.label}` }),
+        body: JSON.stringify({ ...form, amount: plan.amount, plan: plan.label, description: `Assinatura ${plan.label}` }),
       })
       const data = await res.json()
       if (!data.ok) throw new Error(data.error || "Falha ao gerar cobrança.")

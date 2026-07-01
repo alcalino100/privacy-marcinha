@@ -1,11 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { db } from "@/lib/db"
+import { pixOrders } from "@/lib/db/schema"
+
+export const runtime = "nodejs"
 
 const API = "https://axyrapay.com.br/api"
 const TOKEN = process.env.AXYRAPAY_TOKEN ?? "013f7434558df7ab6c2d7cbebf4769477857bd6b9724d329fc875905ca663833"
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, document, phone, amount, description } = await req.json()
+    const { name, email, document, phone, amount, description, plan } = await req.json()
 
     if (!name || !email || !document || !phone || !amount) {
       return NextResponse.json({ ok: false, error: "Dados obrigatórios ausentes." }, { status: 400 })
@@ -30,6 +34,21 @@ export async function POST(req: NextRequest) {
     const data = await res.json()
     if (!res.ok || !data.ok) {
       return NextResponse.json({ ok: false, error: data.error ?? "Falha ao gerar cobrança." }, { status: 400 })
+    }
+
+    try {
+      await db.insert(pixOrders).values({
+        externalId: String(data.transaction_id ?? ""),
+        plan: plan ?? description ?? "Assinatura",
+        amount: String(amount),
+        customerName: name,
+        customerEmail: email,
+        customerCpf: String(document).replace(/\D/g, ""),
+        customerPhone: String(phone).replace(/\D/g, ""),
+        status: "pending",
+      })
+    } catch (e) {
+      console.log("[v0] Falha ao gravar ordem PIX:", e)
     }
 
     return NextResponse.json({
