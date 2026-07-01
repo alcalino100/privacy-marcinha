@@ -4,8 +4,10 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 import { saveSettings } from "@/app/actions/admin"
-import type { Settings } from "@/lib/queries"
-import { LogOut, LayoutDashboard, ListOrdered, Users, Settings as SettingsIcon } from "lucide-react"
+import { ImageUpload } from "@/components/image-upload"
+import { PostsManager } from "@/components/posts-manager"
+import type { Settings, Post } from "@/lib/queries"
+import { LogOut, LayoutDashboard, ListOrdered, Users, Settings as SettingsIcon, Palette, GalleryHorizontalEnd } from "lucide-react"
 
 type Order = {
   id: number
@@ -39,6 +41,8 @@ const TABS = [
   { id: "stats", label: "Visão geral", icon: LayoutDashboard },
   { id: "orders", label: "PIX", icon: ListOrdered },
   { id: "visits", label: "Acessos", icon: Users },
+  { id: "cards", label: "Cards", icon: GalleryHorizontalEnd },
+  { id: "appearance", label: "Aparência", icon: Palette },
   { id: "settings", label: "Perfil", icon: SettingsIcon },
 ] as const
 
@@ -47,11 +51,13 @@ export function AdminDashboard({
   orders,
   visits,
   settings,
+  posts,
 }: {
   stats: Stats
   orders: Order[]
   visits: Visit[]
   settings: Settings
+  posts: Post[]
 }) {
   const router = useRouter()
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("stats")
@@ -85,6 +91,8 @@ export function AdminDashboard({
     className:
       "h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-[14px] text-gray-900 outline-none focus:border-[#f07040]",
   })
+
+  const setImg = (k: keyof Settings) => (url: string) => setForm({ ...form, [k]: url })
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-3xl bg-[#f0ebe4] pb-10">
@@ -206,6 +214,29 @@ export function AdminDashboard({
           </div>
         )}
 
+        {tab === "cards" && <PostsManager posts={posts} />}
+
+        {tab === "appearance" && (
+          <form onSubmit={onSave} className="flex flex-col gap-4 rounded-xl border border-[#e5e0d8] bg-white p-4">
+            <Group title="Cores do site">
+              <ColorLabel t="Cor de destaque" value={form.accent} onChange={(v) => setForm({ ...form, accent: v })} />
+              <ColorLabel t="Destaque secundário" value={form.accentDark} onChange={(v) => setForm({ ...form, accentDark: v })} />
+              <ColorLabel t="Cor de fundo" value={form.bg} onChange={(v) => setForm({ ...form, bg: v })} />
+            </Group>
+            <Group title="Textos e rótulos">
+              <Label t="Título assinaturas"><input {...field("subsLabel")} /></Label>
+              <Label t="Título promoções"><input {...field("promoLabel")} /></Label>
+              <Label t="Rótulo plano 1"><input {...field("label1m")} /></Label>
+              <Label t="Rótulo plano 2"><input {...field("label3m")} /></Label>
+              <Label t="Rótulo plano 3"><input {...field("label6m")} /></Label>
+              <Label t="Aba postagens"><input {...field("postsLabel")} /></Label>
+              <Label t="Aba mídias"><input {...field("mediaLabel")} /></Label>
+              <Label t="Texto 'Ler mais'"><input {...field("readMore")} /></Label>
+            </Group>
+            <SaveBar saving={saving} saved={saved} />
+          </form>
+        )}
+
         {tab === "settings" && (
           <form onSubmit={onSave} className="flex flex-col gap-4 rounded-xl border border-[#e5e0d8] bg-white p-4">
             <Group title="Identidade">
@@ -225,17 +256,14 @@ export function AdminDashboard({
               </Label>
             </Group>
 
-            <Group title="Imagens (URL ou caminho)">
-              <Label t="Foto de perfil">
-                <input {...field("avatarUrl")} />
-              </Label>
-              <Label t="Foto de capa">
-                <input {...field("coverUrl")} />
-              </Label>
-              <Label t="Imagem bloqueada">
-                <input {...field("lockedUrl")} />
-              </Label>
-            </Group>
+            <div>
+              <h3 className="mb-2 text-[13px] font-semibold text-gray-900">Imagens</h3>
+              <div className="flex flex-col gap-3">
+                <ImageUpload label="Foto de perfil" value={form.avatarUrl} onChange={setImg("avatarUrl")} />
+                <ImageUpload label="Foto de capa" value={form.coverUrl} onChange={setImg("coverUrl")} />
+                <ImageUpload label="Imagem bloqueada padrão" value={form.lockedUrl} onChange={setImg("lockedUrl")} />
+              </div>
+            </div>
 
             <Group title="Valores dos planos (R$)">
               <Label t="1 mês">
@@ -270,20 +298,47 @@ export function AdminDashboard({
               </Label>
             </Group>
 
-            <div className="flex items-center gap-3">
-              <button
-                type="submit"
-                disabled={saving}
-                className="h-11 rounded-full bg-[#f07040] px-6 text-[14px] font-semibold text-white disabled:opacity-60"
-              >
-                {saving ? "Salvando..." : "Salvar alterações"}
-              </button>
-              {saved && <span className="text-[13px] font-medium text-green-600">Salvo!</span>}
-            </div>
+            <SaveBar saving={saving} saved={saved} />
           </form>
         )}
       </div>
     </div>
+  )
+}
+
+function SaveBar({ saving, saved }: { saving: boolean; saved: boolean }) {
+  return (
+    <div className="flex items-center gap-3">
+      <button
+        type="submit"
+        disabled={saving}
+        className="h-11 rounded-full bg-[#f07040] px-6 text-[14px] font-semibold text-white disabled:opacity-60"
+      >
+        {saving ? "Salvando..." : "Salvar alterações"}
+      </button>
+      {saved && <span className="text-[13px] font-medium text-green-600">Salvo!</span>}
+    </div>
+  )
+}
+
+function ColorLabel({ t, value, onChange }: { t: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[12px] text-gray-500">{t}</span>
+      <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-2">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-9 w-9 cursor-pointer border-0 bg-transparent p-0"
+        />
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-11 flex-1 bg-transparent text-[14px] text-gray-900 outline-none"
+        />
+      </div>
+    </label>
   )
 }
 

@@ -1,8 +1,9 @@
 import { db } from "@/lib/db"
-import { profileSettings } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+import { profileSettings, posts } from "@/lib/db/schema"
+import { asc, eq } from "drizzle-orm"
 
 export type Settings = typeof profileSettings.$inferSelect
+export type Post = typeof posts.$inferSelect
 
 const DEFAULTS: Settings = {
   id: 1,
@@ -21,6 +22,17 @@ const DEFAULTS: Settings = {
   likes: "319.5K",
   posts: "646",
   media: "1.123",
+  accent: "#f07040",
+  accentDark: "#f5956a",
+  bg: "#f0ebe4",
+  subsLabel: "Assinaturas",
+  promoLabel: "Promoções",
+  label1m: "1 mês",
+  label3m: "3 meses (20% off)",
+  label6m: "6 meses (30% off)",
+  postsLabel: "Postagens",
+  mediaLabel: "Mídias",
+  readMore: "Ler mais",
   updatedAt: new Date(),
 }
 
@@ -34,5 +46,13 @@ export async function getSettings(): Promise<Settings> {
     return rows[0] ?? DEFAULTS
   } catch {
     return DEFAULTS
+  }
+}
+
+export async function getPosts(): Promise<Post[]> {
+  try {
+    return await db.select().from(posts).orderBy(asc(posts.sortOrder), asc(posts.id))
+  } catch {
+    return []
   }
 }

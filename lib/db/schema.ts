@@ -101,5 +101,28 @@ export const profileSettings = pgTable('profile_settings', {
   likes: text('likes').notNull().default('319.5K'),
   posts: text('posts').notNull().default('646'),
   media: text('media').notNull().default('1.123'),
+  accent: text('accent').notNull().default('#f07040'),
+  accentDark: text('accentDark').notNull().default('#f5956a'),
+  bg: text('bg').notNull().default('#f0ebe4'),
+  subsLabel: text('subsLabel').notNull().default('Assinaturas'),
+  promoLabel: text('promoLabel').notNull().default('Promoções'),
+  label1m: text('label1m').notNull().default('1 mês'),
+  label3m: text('label3m').notNull().default('3 meses (20% off)'),
+  label6m: text('label6m').notNull().default('6 meses (30% off)'),
+  postsLabel: text('postsLabel').notNull().default('Postagens'),
+  mediaLabel: text('mediaLabel').notNull().default('Mídias'),
+  readMore: text('readMore').notNull().default('Ler mais'),
   updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+})
+
+export const posts = pgTable('posts', {
+  id: serial('id').primaryKey(),
+  imageUrl: text('imageUrl').notNull(),
+  caption: text('caption').notNull().default(''),
+  locked: boolean('locked').notNull().default(true),
+  photos: text('photos').notNull().default(''),
+  videos: text('videos').notNull().default(''),
+  likes: text('likes').notNull().default(''),
+  sortOrder: integer('sortOrder').notNull().default(0),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
 })
