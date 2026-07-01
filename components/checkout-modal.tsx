@@ -78,7 +78,7 @@ export function CheckoutModal({ plan, onClose }: { plan: Plan; onClose: () => vo
               placeholder="Nome completo"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="h-12 rounded-lg border border-gray-200 px-4 text-[16px] outline-none focus:border-[#f07040]"
+              className="h-12 rounded-lg border border-gray-200 bg-white px-4 text-[16px] text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#f07040]"
             />
             <input
               required
@@ -86,7 +86,7 @@ export function CheckoutModal({ plan, onClose }: { plan: Plan; onClose: () => vo
               placeholder="E-mail"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="h-12 rounded-lg border border-gray-200 px-4 text-[16px] outline-none focus:border-[#f07040]"
+              className="h-12 rounded-lg border border-gray-200 bg-white px-4 text-[16px] text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#f07040]"
             />
             <input
               required
@@ -94,7 +94,7 @@ export function CheckoutModal({ plan, onClose }: { plan: Plan; onClose: () => vo
               placeholder="CPF"
               value={form.document}
               onChange={(e) => setForm({ ...form, document: e.target.value })}
-              className="h-12 rounded-lg border border-gray-200 px-4 text-[16px] outline-none focus:border-[#f07040]"
+              className="h-12 rounded-lg border border-gray-200 bg-white px-4 text-[16px] text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#f07040]"
             />
             <input
               required
@@ -102,7 +102,7 @@ export function CheckoutModal({ plan, onClose }: { plan: Plan; onClose: () => vo
               placeholder="Telefone"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="h-12 rounded-lg border border-gray-200 px-4 text-[16px] outline-none focus:border-[#f07040]"
+              className="h-12 rounded-lg border border-gray-200 bg-white px-4 text-[16px] text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#f07040]"
             />
             {error && <p className="text-[13px] text-red-500">{error}</p>}
             <button

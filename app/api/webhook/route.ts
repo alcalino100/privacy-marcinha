@@ -1,0 +1,38 @@
+import { type NextRequest, NextResponse } from "next/server"
+
+const TOKEN = process.env.AXYRAPAY_TOKEN ?? "013f7434558df7ab6c2d7cbebf4769477857bd6b9724d329fc875905ca663833"
+
+// Endpoint privado que recebe as notificações (webhooks) do gateway AxyraPay.
+// Configure esta URL no painel da AxyraPay: https://SEU-DOMINIO/api/webhook
+export async function POST(req: NextRequest) {
+  try {
+    // Valida a origem via token (Authorization: Bearer, header x-webhook-token ou query ?token=)
+    const auth = req.headers.get("authorization")?.replace("Bearer ", "")
+    const headerToken = req.headers.get("x-webhook-token")
+    const queryToken = req.nextUrl.searchParams.get("token")
+    if (auth !== TOKEN && headerToken !== TOKEN && queryToken !== TOKEN) {
+      return NextResponse.json({ ok: false, error: "Não autorizado." }, { status: 401 })
+    }
+
+    const event = await req.json()
+    const transactionId = event.transaction_id ?? event.id
+    const status = event.status ?? event.payment_status
+
+    console.log("[v0] Webhook AxyraPay recebido:", { transactionId, status })
+
+    // Aqui você trata o evento (ex.: liberar assinatura quando status === "confirmed").
+    if (status === "confirmed" || status === "paid") {
+      console.log("[v0] Pagamento confirmado para a transação:", transactionId)
+      // TODO: liberar acesso/assinatura para o cliente.
+    }
+
+    return NextResponse.json({ ok: true, received: true })
+  } catch {
+    return NextResponse.json({ ok: false, error: "Payload inválido." }, { status: 400 })
+  }
+}
+
+// Bloqueia acesso via navegador (GET) — este endpoint não é público.
+export async function GET() {
+  return NextResponse.json({ ok: false, error: "Método não permitido." }, { status: 405 })
+}
