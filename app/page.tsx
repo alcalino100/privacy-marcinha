@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { CheckoutModal } from "@/components/checkout-modal"
+import { PreSell } from "@/components/pre-sell"
 import {
   Image as ImageIcon,
   Video,
@@ -45,6 +46,9 @@ type Plan = { label: string; price: string; amount: number }
 export default function Page() {
   const [promoOpen, setPromoOpen] = useState(true)
   const [plan, setPlan] = useState<Plan | null>(null)
+  const [entered, setEntered] = useState(false)
+
+  if (!entered) return <PreSell onEnter={() => setEntered(true)} />
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-[480px] bg-[#f0ebe4] pb-16">
