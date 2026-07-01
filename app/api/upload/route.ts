@@ -14,8 +14,9 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File
     if (!file) return NextResponse.json({ error: "Arquivo ausente." }, { status: 400 })
 
-    const blob = await put(`uploads/${Date.now()}-${file.name}`, file, { access: "public" })
-    return NextResponse.json({ url: blob.url })
+    const blob = await put(`uploads/${Date.now()}-${file.name}`, file, { access: "private" })
+    // Store store is private; serve via public delivery route.
+    return NextResponse.json({ url: `/api/file?pathname=${encodeURIComponent(blob.pathname)}` })
   } catch (e) {
     console.error("Upload error:", e)
     return NextResponse.json({ error: "Falha no upload." }, { status: 500 })
