@@ -116,9 +116,9 @@ export default function Page() {
         <h2 className="mb-2 mt-4 text-[15px] font-semibold text-gray-900">Assinaturas</h2>
         <PlanButton
           label="1 mês"
-          price="R$ 25,00"
+          price="R$ 24,90"
           className="bg-gradient-to-r from-[#f5956a] to-[#f07040]"
-          onSelect={() => setPlan({ label: "1 mês", price: "R$ 25,00", amount: 25 })}
+          onSelect={() => setPlan({ label: "1 mês", price: "R$ 24,90", amount: 24.9 })}
         />
 
         {/* Bloco 5 — Promoções */}
@@ -141,15 +141,15 @@ export default function Page() {
             <div className="flex flex-col gap-2 pb-2">
               <PlanButton
                 label="3 meses (20% off)"
-                price="R$ 60,00"
+                price="R$ 59,90"
                 className="bg-gradient-to-r from-[#f9c09a] to-[#f5956a]"
-                onSelect={() => setPlan({ label: "3 meses", price: "R$ 60,00", amount: 60 })}
+                onSelect={() => setPlan({ label: "3 meses", price: "R$ 59,90", amount: 59.9 })}
               />
               <PlanButton
                 label="6 meses (30% off)"
-                price="R$ 105,00"
+                price="R$ 99,90"
                 className="bg-gradient-to-r from-[#f9c09a] to-[#f5956a]"
-                onSelect={() => setPlan({ label: "6 meses", price: "R$ 105,00", amount: 105 })}
+                onSelect={() => setPlan({ label: "6 meses", price: "R$ 99,90", amount: 99.9 })}
               />
             </div>
           </div>
