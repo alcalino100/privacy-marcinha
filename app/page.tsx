@@ -49,10 +49,8 @@ export default function Page() {
   return (
     <main className="mx-auto min-h-screen w-full max-w-[480px] bg-[#f0ebe4] pb-16">
       {/* Bloco 1 — Header */}
-      <header className="sticky top-0 z-20 bg-white py-3 text-center">
-        <span className="text-[16px] font-bold tracking-tight text-gray-900">
-          privacy<span className="text-[#f07040]">.</span>
-        </span>
+      <header className="sticky top-0 z-20 flex justify-center bg-white py-3">
+        <img src="/privacy-logo.png" alt="privacy." className="h-6 w-auto" />
       </header>
 
       {/* Bloco 2 — Cover + Avatar + Contadores */}
