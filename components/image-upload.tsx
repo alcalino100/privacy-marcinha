@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react"
 import { Upload } from "lucide-react"
+import { upload } from "@vercel/blob/client"
 
 export function ImageUpload({
   value,
@@ -15,17 +16,17 @@ export function ImageUpload({
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
 
-  async function upload(file: File) {
+  async function doUpload(file: File) {
     setBusy(true)
     try {
-      const fd = new FormData()
-      fd.append("file", file)
-      const res = await fetch("/api/upload", { method: "POST", body: fd })
-      const data = await res.json()
-      if (data.url) onChange(data.url)
-      else alert(data.error || "Falha no upload.")
-    } catch {
+      const blob = await upload(`uploads/${Date.now()}-${file.name}`, file, {
+        access: "private",
+        handleUploadUrl: "/api/upload",
+      })
+      onChange(`/api/file?pathname=${encodeURIComponent(blob.pathname)}`)
+    } catch (e) {
       alert("Falha no upload.")
+      console.error("[v0] upload error:", e)
     } finally {
       setBusy(false)
     }
@@ -64,7 +65,7 @@ export function ImageUpload({
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0]
-          if (f) upload(f)
+          if (f) doUpload(f)
           e.target.value = ""
         }}
       />
