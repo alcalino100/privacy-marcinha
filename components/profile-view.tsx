@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react"
 import { CheckoutModal } from "@/components/checkout-modal"
-import { PreSell } from "@/components/pre-sell"
 import type { Settings, Post } from "@/lib/queries"
 import {
   Image as ImageIcon,
@@ -51,7 +50,6 @@ type Plan = { label: string; price: string; amount: number }
 export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
   const [promoOpen, setPromoOpen] = useState(true)
   const [plan, setPlan] = useState<Plan | null>(null)
-  const [entered, setEntered] = useState(false)
   const tracked = useRef(false)
 
   useEffect(() => {
@@ -64,8 +62,6 @@ export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
     }).catch(() => {})
   }, [])
 
-  if (!entered) return <PreSell onEnter={() => setEntered(true)} name={s.name} coverUrl={s.avatarUrl} />
-
   const gradSolid = { backgroundImage: `linear-gradient(to right, ${s.accentDark}, ${s.accent})` }
   const gradPromo = { backgroundImage: `linear-gradient(to right, ${s.accentDark}, ${s.accentDark})` }
 
@@ -76,7 +72,7 @@ export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
       </header>
 
       <div className="relative">
-        <img src={s.coverUrl || "/placeholder.svg"} alt={`Foto de capa de ${s.name}`} className="h-[180px] w-full object-cover" />
+        <img src={s.coverUrl || "/placeholder.svg"} alt={`Foto de capa de ${s.name}`} width={480} height={180} fetchPriority="high" decoding="async" className="h-[180px] w-full object-cover" />
         <div className="absolute bottom-2 right-2 z-10 flex items-center gap-3 text-[12px] font-bold text-white">
           <span className="flex items-center gap-1"><ImageIcon size={14} /> {s.photos}</span>
           <span className="flex items-center gap-1"><Video size={14} /> {s.videos}</span>
@@ -85,7 +81,7 @@ export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
         </div>
         <div className="absolute -bottom-9 left-3 z-10">
           <div className="relative h-[72px] w-[72px] overflow-hidden rounded-full border-[3px] border-white">
-            <img src={s.avatarUrl || "/placeholder.svg"} alt={`Avatar de ${s.name}`} className="h-full w-full object-cover" />
+            <img src={s.avatarUrl || "/placeholder.svg"} alt={`Avatar de ${s.name}`} width={72} height={72} fetchPriority="high" decoding="async" className="h-full w-full object-cover" />
           </div>
           <span className="absolute bottom-1 right-1 h-[10px] w-[10px] rounded-full border-2 border-white bg-green-500" />
         </div>
@@ -153,7 +149,7 @@ export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
           <article key={p.id} className="overflow-hidden rounded-xl border border-[#ede8e0] bg-white">
             <div className="flex items-center justify-between p-3">
               <div className="flex items-center gap-2">
-                <img src={s.avatarUrl || "/placeholder.svg"} alt="" className="h-10 w-10 rounded-full object-cover" />
+                <img src={s.avatarUrl || "/placeholder.svg"} alt="" width={40} height={40} loading="lazy" decoding="async" className="h-10 w-10 rounded-full object-cover" />
                 <div>
                   <div className="flex items-center gap-1">
                     <span className="text-[14px] font-semibold text-gray-900">{s.name}</span>
@@ -171,6 +167,8 @@ export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
               <img
                 src={p.imageUrl || "/placeholder.svg"}
                 alt={p.locked ? `Conteúdo bloqueado de ${s.name}` : p.caption || "Post"}
+                loading="lazy"
+                decoding="async"
                 className={`h-full w-full object-cover ${p.locked ? "blur-2xl scale-110" : ""}`}
               />
               {p.locked && (
