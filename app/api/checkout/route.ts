@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { pixOrders } from "@/lib/db/schema"
+import { getSettings } from "@/lib/queries"
 
 export const runtime = "nodejs"
 
@@ -19,6 +20,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "Dados obrigatórios ausentes." }, { status: 400 })
     }
 
+    const s = await getSettings()
+    const plans = [
+      { label: s.label1m, price: Number(s.price1m) },
+      { label: s.label3m, price: Number(s.price3m) },
+      { label: s.label6m, price: Number(s.price6m) },
+    ]
+    const selected =
+      (plan && plans.find((p) => p.label === plan)) ||
+      plans.find((p) => Math.abs(p.price - Number(amount)) < 0.01)
+    if (!selected || !Number.isFinite(selected.price)) {
+      return NextResponse.json({ ok: false, error: "Plano ou valor inválido." }, { status: 400 })
+    }
+    const validAmount = selected.price
+
     const res = await fetch(`${API}/payment.php`, {
       method: "POST",
       headers: {
@@ -30,7 +45,7 @@ export async function POST(req: NextRequest) {
         email,
         document: String(document).replace(/\D/g, ""),
         phone: String(phone).replace(/\D/g, ""),
-        amount: Number(amount),
+        amount: validAmount,
         description: description ?? "Assinatura Privacy",
       }),
     })
@@ -44,7 +59,7 @@ export async function POST(req: NextRequest) {
       await db.insert(pixOrders).values({
         externalId: String(data.transaction_id ?? ""),
         plan: plan ?? description ?? "Assinatura",
-        amount: String(amount),
+        amount: String(validAmount),
         customerName: name,
         customerEmail: email,
         customerCpf: String(document).replace(/\D/g, ""),

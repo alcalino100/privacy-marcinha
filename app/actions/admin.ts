@@ -56,10 +56,42 @@ export async function getDashboard() {
 
   const allPosts = await db.select().from(posts).orderBy(posts.sortOrder, posts.id)
 
+  const paidByDay = await db
+    .select({
+      day: sql<string>`to_char("paidAt", 'YYYY-MM-DD')`,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(pixOrders)
+    .where(and(eq(pixOrders.status, "paid"), sql`"paidAt" >= current_date - interval '6 days'`))
+    .groupBy(sql`to_char("paidAt", 'YYYY-MM-DD')`)
+  const visitsByDay = await db
+    .select({
+      day: sql<string>`to_char("createdAt", 'YYYY-MM-DD')`,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(pageVisits)
+    .where(sql`"createdAt" >= current_date - interval '6 days'`)
+    .groupBy(sql`to_char("createdAt", 'YYYY-MM-DD')`)
+
+  const paidMap = new Map(paidByDay.map((r) => [r.day, r.count]))
+  const visitsMap = new Map(visitsByDay.map((r) => [r.day, r.count]))
+  const trend: { date: string; paid: number; visits: number }[] = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date()
+    d.setUTCDate(d.getUTCDate() - i)
+    const key = d.toISOString().slice(0, 10)
+    trend.push({
+      date: `${String(d.getUTCDate()).padStart(2, "0")}/${String(d.getUTCMonth() + 1).padStart(2, "0")}`,
+      paid: paidMap.get(key) ?? 0,
+      visits: visitsMap.get(key) ?? 0,
+    })
+  }
+
   return {
     orders,
     recentVisits,
     posts: allPosts,
+    trend,
     stats: {
       totalGenerated: totalGenerated ?? 0,
       totalPaid: totalPaid ?? 0,

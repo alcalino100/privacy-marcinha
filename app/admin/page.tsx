@@ -11,7 +11,7 @@ export default async function AdminPage() {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user) redirect("/sign-in")
 
-  const [{ orders, recentVisits, stats, posts }, settings] = await Promise.all([
+  const [{ orders, recentVisits, stats, posts, trend }, settings] = await Promise.all([
     getDashboard(),
     getSettings(),
   ])
@@ -23,6 +23,7 @@ export default async function AdminPage() {
       visits={recentVisits as any}
       settings={settings}
       posts={posts}
+      trend={trend}
     />
   )
 }

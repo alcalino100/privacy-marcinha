@@ -33,6 +33,7 @@ type Stats = {
   totalVisits: number
   visitsToday: number
 }
+type Trend = { date: string; paid: number; visits: number }
 
 const brl = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
@@ -53,12 +54,14 @@ export function AdminDashboard({
   visits,
   settings,
   posts,
+  trend,
 }: {
   stats: Stats
   orders: Order[]
   visits: Visit[]
   settings: Settings
   posts: Post[]
+  trend: Trend[]
 }) {
   const router = useRouter()
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("stats")
@@ -196,6 +199,22 @@ export function AdminDashboard({
               label="Conversão"
               value={`${stats.totalVisits ? ((stats.totalPaid / stats.totalVisits) * 100).toFixed(1) : "0"}%`}
             />
+            <div className="col-span-full">
+              <div className="rounded-xl border border-[#e5e0d8] bg-white p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-[13px] font-semibold text-gray-900">Últimos 7 dias</h3>
+                  <div className="flex items-center gap-3 text-[12px] text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <span className="h-2.5 w-2.5 rounded-sm bg-[#f07040]" /> Pagos
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="h-2.5 w-2.5 rounded-sm bg-gray-300" /> Acessos
+                    </span>
+                  </div>
+                </div>
+                <TrendChart trend={trend} />
+              </div>
+            </div>
           </div>
         )}
 
@@ -464,6 +483,31 @@ function Card({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl border border-[#e5e0d8] bg-white p-4">
       <p className="text-[12px] text-gray-500">{label}</p>
       <p className="mt-1 text-[22px] font-bold text-gray-900">{value}</p>
+    </div>
+  )
+}
+
+function TrendChart({ trend }: { trend: Trend[] }) {
+  const max = Math.max(1, ...trend.map((t) => Math.max(t.paid, t.visits)))
+  return (
+    <div className="flex items-end justify-between gap-2">
+      {trend.map((t) => (
+        <div key={t.date} className="flex flex-1 flex-col items-center gap-1">
+          <div className="flex w-full items-end justify-center gap-1" style={{ height: 90 }}>
+            <div
+              className="w-3 rounded-t bg-[#f07040]"
+              style={{ height: `${(t.paid / max) * 100}%` }}
+              title={`${t.paid} pagos`}
+            />
+            <div
+              className="w-3 rounded-t bg-gray-300"
+              style={{ height: `${(t.visits / max) * 100}%` }}
+              title={`${t.visits} acessos`}
+            />
+          </div>
+          <span className="text-[11px] text-gray-500">{t.date}</span>
+        </div>
+      ))}
     </div>
   )
 }
