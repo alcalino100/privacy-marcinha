@@ -13,6 +13,13 @@ async function requireUser() {
   return session.user
 }
 
+export async function validateSignupCode(code: string) {
+  const expected = process.env.ADMIN_SIGNUP_CODE
+  if (!expected) return { ok: false, error: "Cadastro de admin desativado. Configure ADMIN_SIGNUP_CODE." }
+  if (code.trim() !== expected) return { ok: false, error: "Código de convite inválido." }
+  return { ok: true }
+}
+
 export async function getDashboard() {
   await requireUser()
 

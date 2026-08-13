@@ -1,8 +1,10 @@
 onlyBuiltDependencies:
   - sharp
   - msw
+  - esbuild
 allowBuilds:
   sharp: true
   msw: true
+  esbuild: true
 overrides:
   hono: 4.12.25

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
+import { validateSignupCode } from "@/app/actions/admin"
 
 export function AdminAuth() {
   const router = useRouter()
@@ -10,6 +11,7 @@ export function AdminAuth() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [code, setCode] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -19,6 +21,14 @@ export function AdminAuth() {
     e.preventDefault()
     setError(null)
     setLoading(true)
+    if (isSignUp) {
+      const check = await validateSignupCode(code)
+      if (!check.ok) {
+        setError(check.error ?? "Código inválido.")
+        setLoading(false)
+        return
+      }
+    }
     const { error } = isSignUp
       ? await authClient.signUp.email({ email, password, name })
       : await authClient.signIn.email({ email, password })
@@ -44,13 +54,22 @@ export function AdminAuth() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {isSignUp && (
-            <input
-              required
-              placeholder="Nome"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="h-12 rounded-lg border border-gray-200 bg-white px-4 text-[15px] text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#f07040]"
-            />
+            <>
+              <input
+                required
+                placeholder="Nome"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="h-12 rounded-lg border border-gray-200 bg-white px-4 text-[15px] text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#f07040]"
+              />
+              <input
+                required
+                placeholder="Código de convite"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="h-12 rounded-lg border border-gray-200 bg-white px-4 text-[15px] text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#f07040]"
+              />
+            </>
           )}
           <input
             required
