@@ -12,10 +12,11 @@ import {
   ChevronUp,
   FileText,
   GalleryHorizontal,
-  MoreVertical,
   MessageCircle,
-  DollarSign,
-  Bookmark,
+  Home,
+  Search,
+  User,
+  X,
 } from "lucide-react"
 
 function brl(v: string) {
@@ -51,7 +52,12 @@ export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
   const [promoOpen, setPromoOpen] = useState(true)
   const [plan, setPlan] = useState<Plan | null>(null)
   const [bioOpen, setBioOpen] = useState(false)
+  const [tab, setTab] = useState<"posts" | "media">("posts")
+  const [viewer, setViewer] = useState<Post | null>(null)
   const tracked = useRef(false)
+
+  const mediaPosts = posts.filter((p) => p.photos || p.videos)
+  const visible = tab === "media" ? mediaPosts : posts
 
   function fbq(...args: unknown[]) {
     if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
@@ -96,11 +102,12 @@ export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
 
       <div className="relative">
         <img src={s.coverUrl || "/placeholder.svg"} alt={`Foto de capa de ${s.name}`} width={480} height={180} fetchPriority="high" decoding="async" className="h-[180px] w-full object-cover" />
-        <div className="absolute bottom-2 right-2 z-10 flex items-center gap-3 text-[12px] font-bold text-white">
-          <span className="flex items-center gap-1"><ImageIcon size={14} /> {s.photos}</span>
-          <span className="flex items-center gap-1"><Video size={14} /> {s.videos}</span>
-          <span className="flex items-center gap-1"><Lock size={14} /> {s.locked}</span>
-          <span className="flex items-center gap-1"><Heart size={14} /> {s.likes}</span>
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/45 to-transparent" />
+        <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5">
+          <span className="flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-[11px] font-bold text-white backdrop-blur-sm"><ImageIcon size={12} /> {s.photos}</span>
+          <span className="flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-[11px] font-bold text-white backdrop-blur-sm"><Video size={12} /> {s.videos}</span>
+          <span className="flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-[11px] font-bold text-white backdrop-blur-sm"><Lock size={12} /> {s.locked}</span>
+          <span className="flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-[11px] font-bold text-white backdrop-blur-sm"><Heart size={12} /> {s.likes}</span>
         </div>
         <div className="absolute -bottom-9 left-3 z-10">
           <div className="relative h-[72px] w-[72px] overflow-hidden rounded-full border-[3px] border-white">
@@ -171,34 +178,30 @@ export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
       </section>
 
       <div className="flex w-full border-b-2" style={{ borderColor: "#e5e0d8" }}>
-        <button className="flex flex-1 items-center justify-center gap-1.5 border-b-2 pb-2 text-[14px] font-medium text-gray-900" style={{ borderColor: s.accent }}>
+        <button
+          onClick={() => setTab("posts")}
+          className={`flex flex-1 items-center justify-center gap-1.5 border-b-2 pb-2 text-[14px] font-medium ${tab === "posts" ? "text-gray-900" : "text-gray-400"}`}
+          style={tab === "posts" ? { borderColor: s.accent } : { borderColor: "transparent" }}
+        >
           <FileText size={16} /> {s.posts} {s.postsLabel}
         </button>
-        <button className="flex flex-1 items-center justify-center gap-1.5 pb-2 text-[14px] text-gray-400">
+        <button
+          onClick={() => setTab("media")}
+          className={`flex flex-1 items-center justify-center gap-1.5 border-b-2 pb-2 text-[14px] font-medium ${tab === "media" ? "text-gray-900" : "text-gray-400"}`}
+          style={tab === "media" ? { borderColor: s.accent } : { borderColor: "transparent" }}
+        >
           <GalleryHorizontal size={16} /> {s.media} {s.mediaLabel}
         </button>
       </div>
 
-      <div className="flex flex-col gap-4 px-4 py-4">
-        {posts.map((p) => (
+      <div className="grid grid-cols-2 gap-2 px-4 py-4">
+        {visible.map((p) => (
           <article key={p.id} className="overflow-hidden rounded-xl border border-[#ede8e0] bg-white">
-            <div className="flex items-center justify-between p-3">
-              <div className="flex items-center gap-2">
-                <img src={s.avatarUrl || "/placeholder.svg"} alt="" width={40} height={40} loading="lazy" decoding="async" className="h-10 w-10 rounded-full object-cover" />
-                <div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[14px] font-semibold text-gray-900">{s.name}</span>
-                    <BadgeCheck size={14} className="text-[#3b82f6]" />
-                  </div>
-                  <span className="text-xs text-gray-400">{s.handle}</span>
-                </div>
-              </div>
-              <MoreVertical size={20} className="text-gray-400" />
-            </div>
-
-            {p.caption && <p className="px-4 pb-2 text-[13px] text-gray-700">{p.caption}</p>}
-
-            <div className="relative aspect-square overflow-hidden bg-[#ede8e0]">
+            <button
+              onClick={() => (p.locked ? selectPlan({ label: s.label1m, price: brl(s.price1m), amount: Number(s.price1m) }) : setViewer(p))}
+              className="relative block w-full aspect-square bg-[#ede8e0]"
+              aria-label={p.locked ? `Conteúdo bloqueado de ${s.name}` : p.caption || "Ver post"}
+            >
               <img
                 src={p.imageUrl || "/placeholder.svg"}
                 alt={p.locked ? `Conteúdo bloqueado de ${s.name}` : p.caption || "Post"}
@@ -208,42 +211,69 @@ export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
               />
               {p.locked && (
                 <>
-                  <svg className="absolute -bottom-10 -left-10 opacity-60" width="180" height="180" viewBox="0 0 180 180" fill="none">
+                  <svg className="absolute -bottom-8 -left-8 opacity-60" width="140" height="140" viewBox="0 0 180 180" fill="none">
                     <path d="M0 180 A180 180 0 0 1 180 0" stroke="white" strokeWidth="14" fill="none" />
                     <path d="M0 130 A130 130 0 0 1 130 0" stroke="white" strokeWidth="14" fill="none" />
                   </svg>
-                  <svg className="absolute -right-10 -top-10 rotate-180 opacity-60" width="180" height="180" viewBox="0 0 180 180" fill="none">
+                  <svg className="absolute -right-8 -top-8 rotate-180 opacity-60" width="140" height="140" viewBox="0 0 180 180" fill="none">
                     <path d="M0 180 A180 180 0 0 1 180 0" stroke="white" strokeWidth="14" fill="none" />
                     <path d="M0 130 A130 130 0 0 1 130 0" stroke="white" strokeWidth="14" fill="none" />
                   </svg>
-                  <button
-                    onClick={() => selectPlan({ label: s.label1m, price: brl(s.price1m), amount: Number(s.price1m) })}
-                    className="absolute inset-0 flex items-center justify-center"
-                    aria-label="Desbloquear conteúdo assinando"
-                  >
-                    <Lock size={48} strokeWidth={1.5} className="text-[#8a9bb0]" />
-                  </button>
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <Lock size={36} strokeWidth={1.5} className="text-[#8a9bb0]" />
+                  </span>
                 </>
               )}
-            </div>
-
-            <div className="flex items-center gap-4 px-4 py-3 text-[13px] text-gray-500">
-              {p.photos && <span className="flex items-center gap-1"><ImageIcon size={16} /> {p.photos}</span>}
-              {p.videos && <span className="flex items-center gap-1"><Video size={16} /> {p.videos}</span>}
-              {p.likes && <span className="flex items-center gap-1"><Heart size={16} /> {p.likes}</span>}
+            </button>
+            <div className="px-2.5 py-2">
+              {p.caption && <p className="truncate text-[12px] text-gray-700">{p.caption}</p>}
+              <div className="mt-1 flex items-center gap-3 text-[11px] text-gray-500">
+                {p.photos && <span className="flex items-center gap-1"><ImageIcon size={13} /> {p.photos}</span>}
+                {p.videos && <span className="flex items-center gap-1"><Video size={13} /> {p.videos}</span>}
+                {p.likes && <span className="flex items-center gap-1"><Heart size={13} /> {p.likes}</span>}
+              </div>
             </div>
           </article>
         ))}
+        {visible.length === 0 && (
+          <p className="col-span-full py-8 text-center text-[13px] text-gray-400">Nenhuma publicação ainda.</p>
+        )}
       </div>
 
-      <nav className="fixed bottom-0 left-1/2 z-20 flex w-full max-w-[480px] -translate-x-1/2 items-center justify-between border-t border-[#e5e0d8] bg-white px-5 py-3">
-        <div className="flex items-center gap-5 text-gray-500">
-          <Heart size={24} />
-          <MessageCircle size={24} />
-          <DollarSign size={24} />
-        </div>
-        <Bookmark size={24} className="text-gray-500" />
+      <nav className="fixed bottom-0 left-1/2 z-20 flex w-full max-w-[480px] -translate-x-1/2 items-center justify-around border-t border-[#e5e0d8] bg-white px-4 py-3">
+        <Home size={24} className="text-gray-500" />
+        <Search size={24} className="text-gray-500" />
+        <MessageCircle size={24} className="text-gray-500" />
+        <User size={24} className="text-gray-500" />
       </nav>
+
+      {viewer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={() => setViewer(null)}>
+          <div className="flex max-h-[90vh] w-full max-w-[480px] flex-col overflow-hidden rounded-2xl bg-white" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-3">
+              <div className="flex items-center gap-2">
+                <img src={s.avatarUrl || "/placeholder.svg"} alt="" width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
+                <div>
+                  <div className="flex items-center gap-1 text-[13px] font-semibold text-gray-900">{s.name} <BadgeCheck size={13} className="text-[#3b82f6]" /></div>
+                  <span className="text-[11px] text-gray-400">{s.handle}</span>
+                </div>
+              </div>
+              <button onClick={() => setViewer(null)} aria-label="Fechar">
+                <X size={22} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="relative aspect-square bg-black">
+              <img src={viewer.imageUrl || "/placeholder.svg"} alt={viewer.caption || "Post"} className="h-full w-full object-contain" />
+            </div>
+            {viewer.caption && <p className="px-4 py-2 text-[13px] text-gray-700">{viewer.caption}</p>}
+            <div className="flex items-center gap-4 px-4 pb-4 pt-1 text-[13px] text-gray-500">
+              {viewer.photos && <span className="flex items-center gap-1"><ImageIcon size={15} /> {viewer.photos}</span>}
+              {viewer.videos && <span className="flex items-center gap-1"><Video size={15} /> {viewer.videos}</span>}
+              {viewer.likes && <span className="flex items-center gap-1"><Heart size={15} /> {viewer.likes}</span>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {plan && <CheckoutModal plan={plan} onClose={() => setPlan(null)} />}
     </main>
