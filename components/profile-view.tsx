@@ -50,7 +50,14 @@ type Plan = { label: string; price: string; amount: number }
 export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
   const [promoOpen, setPromoOpen] = useState(true)
   const [plan, setPlan] = useState<Plan | null>(null)
+  const [bioOpen, setBioOpen] = useState(false)
   const tracked = useRef(false)
+
+  function fbq(...args: unknown[]) {
+    if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+      ;(window as any).fbq(...args)
+    }
+  }
 
   useEffect(() => {
     if (tracked.current) return
@@ -60,10 +67,26 @@ export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ path: "/" }),
     }).catch(() => {})
+    fbq("track", "ViewContent", { content_name: s.name })
   }, [])
+
+  function selectPlan(p: Plan) {
+    setPlan(p)
+    fbq("track", "InitiateCheckout", {
+      value: p.amount,
+      currency: "BRL",
+      content_name: p.label,
+    })
+  }
 
   const gradSolid = { backgroundImage: `linear-gradient(to right, ${s.accentDark}, ${s.accent})` }
   const gradPromo = { backgroundImage: `linear-gradient(to right, ${s.accentDark}, ${s.accentDark})` }
+
+  const socials = [
+    { key: "instagram", href: s.instagram },
+    { key: "x", href: s.x },
+    { key: "tiktok", href: s.tiktok },
+  ].filter((x) => x.href) as { key: string; href: string }[]
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-[480px] pb-16" style={{ backgroundColor: s.bg }}>
@@ -93,22 +116,34 @@ export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
           <BadgeCheck size={16} className="text-[#3b82f6]" />
         </div>
         <p className="text-[13px] text-gray-500">{s.handle}</p>
-        <p className="mt-2 line-clamp-2 text-[13px] text-gray-700">
+        <p className={`mt-2 text-[13px] text-gray-700 ${bioOpen ? "" : "line-clamp-2"}`}>
           {s.bio}
-          <span className="font-medium" style={{ color: s.accent }}> {s.readMore}</span>
+          {s.bio.length > 80 && (
+            <button
+              onClick={() => setBioOpen((v) => !v)}
+              className="ml-1 font-medium"
+              style={{ color: s.accent }}
+            >
+              {bioOpen ? "Mostrar menos" : s.readMore}
+            </button>
+          )}
         </p>
-        <div className="mt-3 flex items-center gap-4 text-gray-700">
-          <a href="#" aria-label="Instagram"><img src="https://cdn.simpleicons.org/instagram/374151" alt="" width={24} height={24} /></a>
-          <a href="#" aria-label="X"><img src="https://cdn.simpleicons.org/x/374151" alt="" width={24} height={24} /></a>
-          <a href="#" aria-label="TikTok"><img src="https://cdn.simpleicons.org/tiktok/374151" alt="" width={24} height={24} /></a>
-        </div>
+        {socials.length > 0 && (
+          <div className="mt-3 flex items-center gap-4 text-gray-700">
+            {socials.map((x) => (
+              <a key={x.key} href={x.href} target="_blank" rel="noopener noreferrer" aria-label={x.key}>
+                <img src={`https://cdn.simpleicons.org/${x.key}/374151`} alt="" width={24} height={24} />
+              </a>
+            ))}
+          </div>
+        )}
 
         <h2 className="mb-2 mt-4 text-[15px] font-semibold text-gray-900">{s.subsLabel}</h2>
         <PlanButton
           label={s.label1m}
           price={brl(s.price1m)}
           style={gradSolid}
-          onSelect={() => setPlan({ label: s.label1m, price: brl(s.price1m), amount: Number(s.price1m) })}
+          onSelect={() => selectPlan({ label: s.label1m, price: brl(s.price1m), amount: Number(s.price1m) })}
         />
 
         <div className="mt-4 border-t" style={{ borderColor: "#e5e0d8" }}>
@@ -122,13 +157,13 @@ export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
                 label={s.label3m}
                 price={brl(s.price3m)}
                 style={gradPromo}
-                onSelect={() => setPlan({ label: s.label3m, price: brl(s.price3m), amount: Number(s.price3m) })}
+                onSelect={() => selectPlan({ label: s.label3m, price: brl(s.price3m), amount: Number(s.price3m) })}
               />
               <PlanButton
                 label={s.label6m}
                 price={brl(s.price6m)}
                 style={gradPromo}
-                onSelect={() => setPlan({ label: s.label6m, price: brl(s.price6m), amount: Number(s.price6m) })}
+                onSelect={() => selectPlan({ label: s.label6m, price: brl(s.price6m), amount: Number(s.price6m) })}
               />
             </div>
           </div>
@@ -182,7 +217,7 @@ export function ProfileView({ s, posts }: { s: Settings; posts: Post[] }) {
                     <path d="M0 130 A130 130 0 0 1 130 0" stroke="white" strokeWidth="14" fill="none" />
                   </svg>
                   <button
-                    onClick={() => setPlan({ label: s.label1m, price: brl(s.price1m), amount: Number(s.price1m) })}
+                    onClick={() => selectPlan({ label: s.label1m, price: brl(s.price1m), amount: Number(s.price1m) })}
                     className="absolute inset-0 flex items-center justify-center"
                     aria-label="Desbloquear conteúdo assinando"
                   >

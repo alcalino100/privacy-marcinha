@@ -112,6 +112,9 @@ export const profileSettings = pgTable('profile_settings', {
   postsLabel: text('postsLabel').notNull().default('Postagens'),
   mediaLabel: text('mediaLabel').notNull().default('Mídias'),
   readMore: text('readMore').notNull().default('Ler mais'),
+  instagram: text('instagram'),
+  x: text('x'),
+  tiktok: text('tiktok'),
   updatedAt: timestamp('updatedAt').notNull().defaultNow(),
 })
 

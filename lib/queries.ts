@@ -33,6 +33,9 @@ const DEFAULTS: Settings = {
   postsLabel: "Postagens",
   mediaLabel: "Mídias",
   readMore: "Ler mais",
+  instagram: null,
+  x: null,
+  tiktok: null,
   updatedAt: new Date(),
 }
 

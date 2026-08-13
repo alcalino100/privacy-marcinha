@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm"
 
 export const runtime = "nodejs"
 
-const TOKEN = process.env.AXYRAPAY_TOKEN ?? "013f7434558df7ab6c2d7cbebf4769477857bd6b9724d329fc875905ca663833"
+const TOKEN = process.env.AXYRAPAY_TOKEN
 
 // Endpoint privado que recebe as notificações (webhooks) do gateway AxyraPay.
 // Configure esta URL no painel da AxyraPay: https://SEU-DOMINIO/api/webhook

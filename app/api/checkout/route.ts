@@ -5,10 +5,14 @@ import { pixOrders } from "@/lib/db/schema"
 export const runtime = "nodejs"
 
 const API = "https://axyrapay.com.br/api"
-const TOKEN = process.env.AXYRAPAY_TOKEN ?? "013f7434558df7ab6c2d7cbebf4769477857bd6b9724d329fc875905ca663833"
+const TOKEN = process.env.AXYRAPAY_TOKEN
 
 export async function POST(req: NextRequest) {
   try {
+    if (!TOKEN) {
+      return NextResponse.json({ ok: false, error: "Gateway de pagamento não configurado." }, { status: 500 })
+    }
+
     const { name, email, document, phone, amount, description, plan } = await req.json()
 
     if (!name || !email || !document || !phone || !amount) {

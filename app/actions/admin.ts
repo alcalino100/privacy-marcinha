@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { pixOrders, pageVisits, profileSettings, posts } from "@/lib/db/schema"
-import { desc, eq, sql } from "drizzle-orm"
+import { desc, eq, and, sql } from "drizzle-orm"
 import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 
@@ -29,6 +29,10 @@ export async function getDashboard() {
     .select({ revenue: sql<number>`coalesce(sum(amount),0)::float` })
     .from(pixOrders)
     .where(eq(pixOrders.status, "paid"))
+  const [{ paidToday }] = await db
+    .select({ paidToday: sql<number>`count(*)::int` })
+    .from(pixOrders)
+    .where(and(eq(pixOrders.status, "paid"), sql`"paidAt" >= current_date`))
   const [{ totalVisits }] = await db
     .select({ totalVisits: sql<number>`count(*)::int` })
     .from(pageVisits)
@@ -53,6 +57,7 @@ export async function getDashboard() {
       totalGenerated: totalGenerated ?? 0,
       totalPaid: totalPaid ?? 0,
       revenue: revenue ?? 0,
+      paidToday: paidToday ?? 0,
       totalVisits: totalVisits ?? 0,
       visitsToday: visitsToday ?? 0,
     },
@@ -64,7 +69,7 @@ const SETTINGS_FIELDS = [
   "price1m", "price3m", "price6m", "photos", "videos", "locked",
   "likes", "posts", "media", "accent", "accentDark", "bg",
   "subsLabel", "promoLabel", "label1m", "label3m", "label6m",
-  "postsLabel", "mediaLabel", "readMore",
+  "postsLabel", "mediaLabel", "readMore", "instagram", "x", "tiktok",
 ] as const
 
 export async function saveSettings(data: Record<string, string>) {

@@ -29,6 +29,7 @@ type Stats = {
   totalGenerated: number
   totalPaid: number
   revenue: number
+  paidToday: number
   totalVisits: number
   visitsToday: number
 }
@@ -64,6 +65,64 @@ export function AdminDashboard({
   const [form, setForm] = useState(settings)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [orderQ, setOrderQ] = useState("")
+  const [orderStatus, setOrderStatus] = useState<"all" | "paid" | "pending">("all")
+  const [visitQ, setVisitQ] = useState("")
+
+  const filteredOrders = orders.filter((o) => {
+    const q = orderQ.trim().toLowerCase()
+    const matchQ =
+      !q ||
+      (o.customerName ?? "").toLowerCase().includes(q) ||
+      (o.customerEmail ?? "").toLowerCase().includes(q) ||
+      o.plan.toLowerCase().includes(q)
+    const matchStatus = orderStatus === "all" || o.status === orderStatus
+    return matchQ && matchStatus
+  })
+
+  const filteredVisits = visits.filter((v) => {
+    const q = visitQ.trim().toLowerCase()
+    return !q || (v.referrer ?? "").toLowerCase().includes(q) || (v.path ?? "").toLowerCase().includes(q)
+  })
+
+  function exportCSV(filename: string, header: string[], rows: (string | number | null)[][]) {
+    const esc = (v: string | number | null) => {
+      const s = v == null ? "" : String(v)
+      return `"${s.replace(/"/g, '""')}"`
+    }
+    const csv = [header, ...rows.map((r) => r.map(esc))].join("\n")
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function exportOrders() {
+    exportCSV(
+      "pedidos-pix.csv",
+      ["Data", "Cliente", "E-mail", "Plano", "Valor", "Status", "ID"],
+      filteredOrders.map((o) => [
+        dt(o.createdAt),
+        o.customerName,
+        o.customerEmail,
+        o.plan,
+        brl(Number(o.amount)),
+        o.status === "paid" ? "Pago" : "Pendente",
+        o.id,
+      ]),
+    )
+  }
+
+  function exportVisits() {
+    exportCSV(
+      "acessos.csv",
+      ["Data", "Página", "Origem", "IP"],
+      filteredVisits.map((v) => [dt(v.createdAt), v.path, v.referrer, v.ip]),
+    )
+  }
 
   async function logout() {
     await authClient.signOut()
@@ -126,8 +185,13 @@ export function AdminDashboard({
             <Card label="PIX gerados" value={String(stats.totalGenerated)} />
             <Card label="PIX pagos" value={String(stats.totalPaid)} />
             <Card label="Faturamento" value={brl(stats.revenue)} />
+            <Card label="Pagos hoje" value={String(stats.paidToday)} />
             <Card label="Acessos totais" value={String(stats.totalVisits)} />
             <Card label="Acessos hoje" value={String(stats.visitsToday)} />
+            <Card
+              label="Ticket médio"
+              value={brl(stats.totalPaid ? stats.revenue / stats.totalPaid : 0)}
+            />
             <Card
               label="Conversão"
               value={`${stats.totalVisits ? ((stats.totalPaid / stats.totalVisits) * 100).toFixed(1) : "0"}%`}
@@ -136,81 +200,122 @@ export function AdminDashboard({
         )}
 
         {tab === "orders" && (
-          <div className="overflow-x-auto rounded-xl border border-[#e5e0d8] bg-white">
-            <table className="w-full text-left text-[13px]">
-              <thead className="border-b border-[#e5e0d8] text-gray-500">
-                <tr>
-                  <th className="p-3">Data</th>
-                  <th className="p-3">Cliente</th>
-                  <th className="p-3">Plano</th>
-                  <th className="p-3">Valor</th>
-                  <th className="p-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.length === 0 && (
+          <div className="overflow-hidden rounded-xl border border-[#e5e0d8] bg-white">
+            <div className="flex flex-wrap items-center gap-2 border-b border-[#e5e0d8] p-3">
+              <input
+                value={orderQ}
+                onChange={(e) => setOrderQ(e.target.value)}
+                placeholder="Buscar por cliente, e-mail ou plano..."
+                className="h-10 min-w-[180px] flex-1 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-900 outline-none focus:border-[#f07040]"
+              />
+              <select
+                value={orderStatus}
+                onChange={(e) => setOrderStatus(e.target.value as typeof orderStatus)}
+                className="h-10 rounded-lg border border-gray-200 bg-white px-2 text-[13px] text-gray-700 outline-none focus:border-[#f07040]"
+              >
+                <option value="all">Todos</option>
+                <option value="paid">Pagos</option>
+                <option value="pending">Pendentes</option>
+              </select>
+              <button
+                onClick={exportOrders}
+                className="h-10 rounded-lg border border-gray-200 px-3 text-[13px] font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Exportar CSV
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-[13px]">
+                <thead className="border-b border-[#e5e0d8] text-gray-500">
                   <tr>
-                    <td colSpan={5} className="p-6 text-center text-gray-400">
-                      Nenhuma cobrança gerada ainda.
-                    </td>
+                    <th className="p-3">Data</th>
+                    <th className="p-3">Cliente</th>
+                    <th className="p-3">Plano</th>
+                    <th className="p-3">Valor</th>
+                    <th className="p-3">Status</th>
                   </tr>
-                )}
-                {orders.map((o) => (
-                  <tr key={o.id} className="border-b border-[#f0ece5] text-gray-800">
-                    <td className="p-3 whitespace-nowrap">{dt(o.createdAt)}</td>
-                    <td className="p-3">
-                      <div className="font-medium">{o.customerName ?? "—"}</div>
-                      <div className="text-gray-400">{o.customerEmail}</div>
-                    </td>
-                    <td className="p-3 whitespace-nowrap">{o.plan}</td>
-                    <td className="p-3 whitespace-nowrap">{brl(Number(o.amount))}</td>
-                    <td className="p-3">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[12px] font-medium ${
-                          o.status === "paid"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-amber-100 text-amber-700"
-                        }`}
-                      >
-                        {o.status === "paid" ? "Pago" : "Pendente"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredOrders.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-6 text-center text-gray-400">
+                        Nenhuma cobrança encontrada.
+                      </td>
+                    </tr>
+                  )}
+                  {filteredOrders.map((o) => (
+                    <tr key={o.id} className="border-b border-[#f0ece5] text-gray-800">
+                      <td className="p-3 whitespace-nowrap">{dt(o.createdAt)}</td>
+                      <td className="p-3">
+                        <div className="font-medium">{o.customerName ?? "—"}</div>
+                        <div className="text-gray-400">{o.customerEmail}</div>
+                      </td>
+                      <td className="p-3 whitespace-nowrap">{o.plan}</td>
+                      <td className="p-3 whitespace-nowrap">{brl(Number(o.amount))}</td>
+                      <td className="p-3">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[12px] font-medium ${
+                            o.status === "paid"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-amber-100 text-amber-700"
+                          }`}
+                        >
+                          {o.status === "paid" ? "Pago" : "Pendente"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
         {tab === "visits" && (
-          <div className="overflow-x-auto rounded-xl border border-[#e5e0d8] bg-white">
-            <table className="w-full text-left text-[13px]">
-              <thead className="border-b border-[#e5e0d8] text-gray-500">
-                <tr>
-                  <th className="p-3">Data</th>
-                  <th className="p-3">Página</th>
-                  <th className="p-3">Origem</th>
-                  <th className="p-3">IP</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visits.length === 0 && (
+          <div className="overflow-hidden rounded-xl border border-[#e5e0d8] bg-white">
+            <div className="flex items-center gap-2 border-b border-[#e5e0d8] p-3">
+              <input
+                value={visitQ}
+                onChange={(e) => setVisitQ(e.target.value)}
+                placeholder="Buscar por página ou origem..."
+                className="h-10 min-w-[180px] flex-1 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-900 outline-none focus:border-[#f07040]"
+              />
+              <button
+                onClick={exportVisits}
+                className="h-10 rounded-lg border border-gray-200 px-3 text-[13px] font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Exportar CSV
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-[13px]">
+                <thead className="border-b border-[#e5e0d8] text-gray-500">
                   <tr>
-                    <td colSpan={4} className="p-6 text-center text-gray-400">
-                      Nenhum acesso registrado ainda.
-                    </td>
+                    <th className="p-3">Data</th>
+                    <th className="p-3">Página</th>
+                    <th className="p-3">Origem</th>
+                    <th className="p-3">IP</th>
                   </tr>
-                )}
-                {visits.map((v) => (
-                  <tr key={v.id} className="border-b border-[#f0ece5] text-gray-800">
-                    <td className="p-3 whitespace-nowrap">{dt(v.createdAt)}</td>
-                    <td className="p-3">{v.path ?? "/"}</td>
-                    <td className="p-3 max-w-[160px] truncate">{v.referrer ?? "direto"}</td>
-                    <td className="p-3">{v.ip ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredVisits.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="p-6 text-center text-gray-400">
+                        Nenhum acesso encontrado.
+                      </td>
+                    </tr>
+                  )}
+                  {filteredVisits.map((v) => (
+                    <tr key={v.id} className="border-b border-[#f0ece5] text-gray-800">
+                      <td className="p-3 whitespace-nowrap">{dt(v.createdAt)}</td>
+                      <td className="p-3">{v.path ?? "/"}</td>
+                      <td className="p-3 max-w-[160px] truncate">{v.referrer ?? "direto"}</td>
+                      <td className="p-3">{v.ip ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -253,6 +358,18 @@ export function AdminDashboard({
                   rows={3}
                   className="w-full rounded-lg border border-gray-200 bg-white p-3 text-[14px] text-gray-900 outline-none focus:border-[#f07040]"
                 />
+              </Label>
+            </Group>
+
+            <Group title="Redes sociais (deixe vazio para ocultar)">
+              <Label t="Instagram (URL)">
+                <input {...field("instagram")} placeholder="https://instagram.com/..." />
+              </Label>
+              <Label t="X / Twitter (URL)">
+                <input {...field("x")} placeholder="https://x.com/..." />
+              </Label>
+              <Label t="TikTok (URL)">
+                <input {...field("tiktok")} placeholder="https://tiktok.com/@..." />
               </Label>
             </Group>
 
